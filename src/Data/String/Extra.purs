@@ -101,7 +101,7 @@ foreign import sorensenDiceCoefficient :: String -> String -> Number
 
 regexGlobal :: String -> Regex
 regexGlobal regexStr =
-  unsafeRegex regexStr Flags.global
+  unsafeRegex regexStr (Flags.global <> Flags.unicode)
 
 regexHasASCIIWords :: Regex
 regexHasASCIIWords =
@@ -134,39 +134,39 @@ regexUnicodeWords =
         ]
   where
   -- https://github.com/lodash/lodash/blob/master/.internal/unicodeWords.js
-  -- Used to compose unicode character classes.
-  rsAstralRange = "\\ud800-\\udfff"
-  rsComboMarksRange = "\\u0300-\\u036f"
-  reComboHalfMarksRange = "\\ufe20-\\ufe2f"
-  rsComboSymbolsRange = "\\u20d0-\\u20ff"
-  rsComboMarksExtendedRange = "\\u1ab0-\\u1aff"
-  rsComboMarksSupplementRange = "\\u1dc0-\\u1dff"
+  -- Adapted for PCRE2 (PHP) by using \x{...} and actual unicode code points instead of surrogate pairs.
+  rsAstralRange = "\\x{10000}-\\x{10ffff}"
+  rsComboMarksRange = "\\x{0300}-\\x{036f}"
+  reComboHalfMarksRange = "\\x{fe20}-\\x{fe2f}"
+  rsComboSymbolsRange = "\\x{20d0}-\\x{20ff}"
+  rsComboMarksExtendedRange = "\\x{1ab0}-\\x{1aff}"
+  rsComboMarksSupplementRange = "\\x{1dc0}-\\x{1dff}"
   rsComboRange = rsComboMarksRange <> reComboHalfMarksRange <> rsComboSymbolsRange <> rsComboMarksExtendedRange <> rsComboMarksSupplementRange
-  rsDingbatRange = "\\u2700-\\u27bf"
-  rsLowerRange = "a-z\\xdf-\\xf6\\xf8-\\xff"
-  rsMathOpRange = "\\xac\\xb1\\xd7\\xf7"
-  rsNonCharRange = "\\x00-\\x2f\\x3a-\\x40\\x5b-\\x60\\x7b-\\xbf"
-  rsPunctuationRange = "\\u2000-\\u206f"
-  rsSpaceRange = " \\t\\x0b\\f\\xa0\\ufeff\\n\\r\\u2028\\u2029\\u1680\\u180e\\u2000\\u2001\\u2002\\u2003\\u2004\\u2005\\u2006\\u2007\\u2008\\u2009\\u200a\\u202f\\u205f\\u3000"
-  rsUpperRange = "A-Z\\xc0-\\xd6\\xd8-\\xde"
-  rsVarRange = "\\ufe0e\\ufe0f"
+  rsDingbatRange = "\\x{2700}-\\x{27bf}"
+  rsLowerRange = "a-z\\x{00df}-\\x{00f6}\\x{00f8}-\\x{00ff}"
+  rsMathOpRange = "\\x{00ac}\\x{00b1}\\x{00d7}\\x{00f7}"
+  rsNonCharRange = "\\x{0000}-\\x{002f}\\x{003a}-\\x{0040}\\x{005b}-\\x{0060}\\x{007b}-\\x{00bf}"
+  rsPunctuationRange = "\\x{2000}-\\x{206f}"
+  rsSpaceRange = " \\t\\x{000b}\\f\\x{00a0}\\x{feff}\\n\\r\\x{2028}\\x{2029}\\x{1680}\\x{180e}\\x{2000}\\x{2001}\\x{2002}\\x{2003}\\x{2004}\\x{2005}\\x{2006}\\x{2007}\\x{2008}\\x{2009}\\x{200a}\\x{202f}\\x{205f}\\x{3000}"
+  rsUpperRange = "A-Z\\x{00c0}-\\x{00d6}\\x{00d8}-\\x{00de}"
+  rsVarRange = "\\x{fe0e}\\x{fe0f}"
   rsBreakRange = rsMathOpRange <> rsNonCharRange <> rsPunctuationRange <> rsSpaceRange
 
   -- Used to compose unicode capture groups.
-  rsApos = "['\\u2019]"
+  rsApos = "['\\x{2019}]"
   rsBreak = "[" <> rsBreakRange <> "]"
   rsCombo = "[" <> rsComboRange <> "]"
   rsDigit = "\\d"
   rsDingbat = "[" <> rsDingbatRange <> "]"
   rsLower = "[" <> rsLowerRange <> "]"
   rsMisc = "[^" <> rsAstralRange <> rsBreakRange <> rsDigit <> rsDingbatRange <> rsLowerRange <> rsUpperRange <> "]"
-  rsFitz = "\\ud83c[\\udffb-\\udfff]"
+  rsFitz = "\\x{1f3fb}-\\x{1f3ff}"
   rsModifier = "(?:" <> rsCombo <> "|" <> rsFitz <> ")"
   rsNonAstral = "[^" <> rsAstralRange <> "]"
-  rsRegional = "(?:\\ud83c[\\udde6-\\uddff]){2}"
-  rsSurrPair = "[\\ud800-\\udbff][\\udc00-\\udfff]"
+  rsRegional = "(?:\\x{1f1e6}-\\x{1f1ff}){2}"
+  rsSurrPair = "[\\x{10000}-\\x{10ffff}]"
   rsUpper = "[" <> rsUpperRange <> "]"
-  rsZWJ = "\\u200d"
+  rsZWJ = "\\x{200d}"
 
   -- Used to compose unicode regexes.
   rsMiscLower = "(?:" <> rsLower <> "|" <> rsMisc <> ")"
